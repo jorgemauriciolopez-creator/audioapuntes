@@ -1,14 +1,49 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const PROGRESS_MESSAGES = [
+  "Subiendo archivo...",
+  "Procesando audio...",
+  "Generando transcripción...",
+  "Casi listo..."
+];
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [transcription, setTranscription] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading) {
+      return;
+    }
+
+    setProgress(8);
+
+    const intervalId = window.setInterval(() => {
+      setProgress((currentProgress) => {
+        if (currentProgress >= 90) {
+          return 90;
+        }
+
+        return Math.min(currentProgress + 7, 90);
+      });
+    }, 900);
+
+    return () => window.clearInterval(intervalId);
+  }, [isLoading]);
+
+  const progressMessage =
+    PROGRESS_MESSAGES[
+      Math.min(
+        Math.floor(progress / 25),
+        PROGRESS_MESSAGES.length - 1
+      )
+    ];
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -18,11 +53,13 @@ export default function Home() {
     if (file && file.size > MAX_FILE_SIZE) {
       setSelectedFile(null);
       event.target.value = "";
+      setProgress(0);
       setError("El archivo debe pesar 20 MB o menos.");
       return;
     }
 
     setSelectedFile(file ?? null);
+    setProgress(0);
   }
 
   async function handleTranscribe() {
@@ -41,6 +78,7 @@ export default function Home() {
     }
 
     setIsLoading(true);
+    setProgress(8);
     setError("");
     setTranscription("");
 
@@ -59,8 +97,10 @@ export default function Home() {
         throw new Error(data.error ?? "No se pudo transcribir el archivo.");
       }
 
+      setProgress(100);
       setTranscription(data.text ?? "");
     } catch (caughtError) {
+      setProgress(0);
       setError(
         caughtError instanceof Error
           ? caughtError.message
@@ -134,6 +174,23 @@ export default function Home() {
             >
               {isLoading ? "Transcribiendo..." : "Transcribir"}
             </button>
+
+            {(isLoading || progress === 100) && !error ? (
+              <div className="rounded-md border border-[#d7dbcf] bg-[#fbfcf8] p-4">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <p className="font-semibold text-[#315846]">
+                    {progress === 100 ? "Transcripción lista." : progressMessage}
+                  </p>
+                  <p className="text-[#6d7469]">{progress}%</p>
+                </div>
+                <div className="mt-3 h-3 overflow-hidden rounded-full bg-[#e1e5d9]">
+                  <div
+                    className="h-full rounded-full bg-[#2f6f5e] transition-all duration-700"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
 
