@@ -72,7 +72,7 @@ export default function Home() {
               <h2 className="text-xl font-semibold">Archivo de clase</h2>
               <p className="mt-1 text-sm leading-6 text-[#6d7469]">
                 El archivo se envia al servidor de esta app para transcribirlo
-                con OpenAI.
+                con Gemini.
               </p>
             </div>
 
@@ -81,7 +81,7 @@ export default function Home() {
                 Seleccionar audio o video
               </span>
               <span className="mt-2 text-sm text-[#6d7469]">
-                Audio o video, maximo 25 MB
+                Audio o video, maximo 20 MB
               </span>
               <input
                 className="sr-only"
