@@ -10,6 +10,7 @@ MVP pequeño de una web app de aprendizaje hecha con Next.js, TypeScript y Tailw
 - Envia el archivo a una API route del servidor.
 - Llama a Gemini API desde el servidor.
 - Muestra la transcripcion en pantalla.
+- Valida archivos de maximo 20 MB.
 
 ## Que no hace todavia
 
@@ -28,6 +29,11 @@ GEMINI_API_KEY=tu_api_key_aqui
 ```
 
 No pongas esta key en el frontend ni en archivos que vayas a subir a GitHub.
+
+## Limites
+
+- Los archivos deben pesar 20 MB o menos.
+- El free tier de Gemini puede aplicar rate limits; si aparece ese error, espera un poco y vuelve a intentar.
 
 ## Comandos
 

@@ -2,6 +2,8 @@
 
 import { ChangeEvent, useState } from "react";
 
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [transcription, setTranscription] = useState("");
@@ -10,14 +12,31 @@ export default function Home() {
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    setSelectedFile(file ?? null);
     setTranscription("");
     setError("");
+
+    if (file && file.size > MAX_FILE_SIZE) {
+      setSelectedFile(null);
+      event.target.value = "";
+      setError("El archivo debe pesar 20 MB o menos.");
+      return;
+    }
+
+    setSelectedFile(file ?? null);
   }
 
   async function handleTranscribe() {
+    if (isLoading) {
+      return;
+    }
+
     if (!selectedFile) {
       setError("Selecciona un archivo antes de transcribir.");
+      return;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setError("El archivo debe pesar 20 MB o menos.");
       return;
     }
 

@@ -4,6 +4,8 @@ export const runtime = "nodejs";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const GEMINI_MODEL = "gemini-3.5-flash";
+const RATE_LIMIT_ERROR =
+  "Gemini alcanzo el limite de uso por ahora. Espera un poco y vuelve a intentar.";
 
 type GeminiPart = {
   text?: unknown;
@@ -57,6 +59,10 @@ async function uploadFileToGemini(
   );
 
   if (!startUploadResponse.ok) {
+    if (startUploadResponse.status === 429) {
+      throw new Error(RATE_LIMIT_ERROR);
+    }
+
     const result = await startUploadResponse.json();
     throw new Error(getErrorMessage(result));
   }
@@ -80,6 +86,10 @@ async function uploadFileToGemini(
   const uploadResult = (await uploadResponse.json()) as GeminiFileUpload;
 
   if (!uploadResponse.ok) {
+    if (uploadResponse.status === 429) {
+      throw new Error(RATE_LIMIT_ERROR);
+    }
+
     throw new Error(getErrorMessage(uploadResult));
   }
 
@@ -215,6 +225,10 @@ export async function POST(request: Request) {
     const result = await response.json();
 
     if (!response.ok) {
+      if (response.status === 429) {
+        return NextResponse.json({ error: RATE_LIMIT_ERROR }, { status: 429 });
+      }
+
       return NextResponse.json(
         { error: getErrorMessage(result) },
         { status: response.status }
