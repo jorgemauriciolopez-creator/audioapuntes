@@ -11,6 +11,7 @@ MVP pequeño de una web app de aprendizaje hecha con Next.js, TypeScript y Tailw
 - Llama a Gemini API desde el servidor.
 - Muestra la transcripcion en pantalla.
 - Valida archivos de maximo 20 MB.
+- Genera apuntes de estudio desde la transcripcion.
 
 ## Que no hace todavia
 
@@ -18,7 +19,7 @@ MVP pequeño de una web app de aprendizaje hecha con Next.js, TypeScript y Tailw
 - No guarda datos en base de datos.
 - No usa pagos.
 - No guarda historial.
-- No genera resumenes todavia.
+- No exporta apuntes todavia.
 
 ## Variables de entorno
 
