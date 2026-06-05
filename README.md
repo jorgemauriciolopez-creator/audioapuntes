@@ -1,62 +1,15 @@
-# AudioApuntes
+Estoy construyendo **AudioApuntes**, una web app personal para convertir audios o videos en transcripciones y apuntes de estudio usando IA.
 
-MVP pequeño de una web app de aprendizaje hecha con Next.js, TypeScript y Tailwind.
+La idea nació de una necesidad real: muchas veces tengo audios de clase, notas de voz o grabaciones largas, pero convertirlas en material útil de estudio toma demasiado tiempo.
 
-## Que hace ahora
+Hasta ahora la app permite:
 
-- Permite elegir un archivo de audio o video.
-- Muestra el nombre del archivo seleccionado.
-- Muestra un boton de Transcribir.
-- Envia el archivo a una API route del servidor.
-- Llama a Gemini API desde el servidor.
-- Muestra la transcripcion en pantalla.
-- Valida archivos de maximo 20 MB.
-- Genera apuntes de estudio desde la transcripcion.
-- Puede proteger el uso de las APIs con un codigo de acceso opcional.
+* Subir un archivo de audio o video.
+* Transcribirlo automáticamente con Gemini API.
+* Generar apuntes estructurados con resumen, puntos clave, conceptos importantes, preguntas de repaso y recomendaciones de estudio.
+* Copiar y exportar resultados.
+* Usar una protección básica de acceso para evitar uso público no autorizado.
 
-## Que no hace todavia
+El proyecto me está sirviendo para practicar desarrollo web con **Next.js, TypeScript, Tailwind CSS, API routes, Gemini API, Git/GitHub y Vercel**.
 
-- No usa autenticacion.
-- No guarda datos en base de datos.
-- No usa pagos.
-- No guarda historial.
-- No exporta apuntes todavia.
-
-## Variables de entorno
-
-Crea un archivo `.env.local` en la raiz del proyecto:
-
-```bash
-GEMINI_API_KEY=tu_api_key_aqui
-APP_ACCESS_CODE=un_codigo_opcional
-```
-
-No pongas estas variables en el frontend ni en archivos que vayas a subir a GitHub.
-
-`APP_ACCESS_CODE` es opcional. Si existe, las rutas `/api/transcribe` y
-`/api/study-notes` piden ese codigo por header antes de usar Gemini. Esto es
-una proteccion basica para deploys personales, no autenticacion real.
-
-## Deploy en Vercel
-
-En Vercel, abre tu proyecto y ve a `Settings` -> `Environment Variables`.
-Agrega:
-
-- `GEMINI_API_KEY`: tu API key de Gemini.
-- `APP_ACCESS_CODE`: un codigo privado si quieres bloquear el uso publico.
-
-Despues de cambiar variables, redeploya el proyecto para que Vercel las cargue.
-
-## Limites
-
-- Los archivos deben pesar 20 MB o menos.
-- El free tier de Gemini puede aplicar rate limits; si aparece ese error, espera un poco y vuelve a intentar.
-
-## Comandos
-
-```bash
-npm install
-npm run dev
-```
-
-Luego abre `http://localhost:3000`.
+Más que hacer una app perfecta, mi objetivo es aprender construyendo proyectos reales, documentar el proceso y mejorar poco a poco.
