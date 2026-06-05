@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const GEMINI_MODEL = "gemini-3.5-flash";
-const RATE_LIMIT_ERROR =
-  "Gemini alcanzo el limite de uso por ahora. Espera un poco y vuelve a intentar.";
+const GEMINI_MODEL = "gemini-2.5-flash";
+const MAX_RETRIES = 2;
+const HIGH_DEMAND_ERROR =
+  "Gemini esta teniendo alta demanda por ahora. Espera un poco y vuelve a intentar.";
 
 type StudyNotes = {
   summary: string;
@@ -40,6 +41,54 @@ function getErrorMessage(error: unknown) {
   }
 
   return "No se pudieron generar los apuntes.";
+}
+
+function isTemporaryGeminiError(status: number, result: unknown) {
+  const message = getErrorMessage(result).toLowerCase();
+
+  return (
+    status === 429 ||
+    status === 503 ||
+    message.includes("high demand") ||
+    message.includes("try again later")
+  );
+}
+
+function getGeminiFriendlyError(status: number, result: unknown) {
+  if (isTemporaryGeminiError(status, result)) {
+    return HIGH_DEMAND_ERROR;
+  }
+
+  return getErrorMessage(result);
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function readJson(response: Response) {
+  return response.json().catch(() => null);
+}
+
+async function fetchGeminiWithRetry(
+  request: () => Promise<Response>
+) {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    const response = await request();
+    const result = await readJson(response);
+
+    if (
+      response.ok ||
+      !isTemporaryGeminiError(response.status, result) ||
+      attempt === MAX_RETRIES
+    ) {
+      return { response, result };
+    }
+
+    await sleep(800 * 2 ** attempt);
+  }
+
+  throw new Error(HIGH_DEMAND_ERROR);
 }
 
 function validateAccessCode(request: Request) {
@@ -156,21 +205,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `Convierte esta transcripcion en apuntes de estudio en espanol.
+  const { response, result } = await fetchGeminiWithRetry(() => fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `Convierte esta transcripcion en apuntes de estudio en espanol.
 
 Devuelve solo JSON valido, sin markdown, con esta estructura exacta:
 {
@@ -183,26 +232,20 @@ Devuelve solo JSON valido, sin markdown, con esta estructura exacta:
 
 Transcripcion:
 ${transcription}`
-              }
-            ]
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            response_mime_type: "application/json"
           }
-        ],
-        generationConfig: {
-          response_mime_type: "application/json"
-        }
-      })
-    }
-  );
-
-  const result = await response.json();
+        })
+      }
+    ));
 
   if (!response.ok) {
-    if (response.status === 429) {
-      return NextResponse.json({ error: RATE_LIMIT_ERROR }, { status: 429 });
-    }
-
     return NextResponse.json(
-      { error: getErrorMessage(result) },
+      { error: getGeminiFriendlyError(response.status, result) },
       { status: response.status }
     );
   }
