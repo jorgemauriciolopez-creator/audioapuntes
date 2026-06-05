@@ -42,6 +42,23 @@ function getErrorMessage(error: unknown) {
   return "No se pudieron generar los apuntes.";
 }
 
+function validateAccessCode(request: Request) {
+  const accessCode = process.env.APP_ACCESS_CODE;
+
+  if (!accessCode) {
+    return null;
+  }
+
+  if (request.headers.get("x-app-access-code") === accessCode) {
+    return null;
+  }
+
+  return NextResponse.json(
+    { error: "Codigo de acceso incorrecto." },
+    { status: 401 }
+  );
+}
+
 function getGeminiText(result: unknown) {
   if (
     typeof result !== "object" ||
@@ -108,6 +125,12 @@ function normalizeNotes(value: unknown): StudyNotes {
 }
 
 export async function POST(request: Request) {
+  const accessError = validateAccessCode(request);
+
+  if (accessError) {
+    return accessError;
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {

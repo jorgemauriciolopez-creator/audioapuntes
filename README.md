@@ -12,6 +12,7 @@ MVP pequeño de una web app de aprendizaje hecha con Next.js, TypeScript y Tailw
 - Muestra la transcripcion en pantalla.
 - Valida archivos de maximo 20 MB.
 - Genera apuntes de estudio desde la transcripcion.
+- Puede proteger el uso de las APIs con un codigo de acceso opcional.
 
 ## Que no hace todavia
 
@@ -27,9 +28,24 @@ Crea un archivo `.env.local` en la raiz del proyecto:
 
 ```bash
 GEMINI_API_KEY=tu_api_key_aqui
+APP_ACCESS_CODE=un_codigo_opcional
 ```
 
-No pongas esta key en el frontend ni en archivos que vayas a subir a GitHub.
+No pongas estas variables en el frontend ni en archivos que vayas a subir a GitHub.
+
+`APP_ACCESS_CODE` es opcional. Si existe, las rutas `/api/transcribe` y
+`/api/study-notes` piden ese codigo por header antes de usar Gemini. Esto es
+una proteccion basica para deploys personales, no autenticacion real.
+
+## Deploy en Vercel
+
+En Vercel, abre tu proyecto y ve a `Settings` -> `Environment Variables`.
+Agrega:
+
+- `GEMINI_API_KEY`: tu API key de Gemini.
+- `APP_ACCESS_CODE`: un codigo privado si quieres bloquear el uso publico.
+
+Despues de cambiar variables, redeploya el proyecto para que Vercel las cargue.
 
 ## Limites
 
